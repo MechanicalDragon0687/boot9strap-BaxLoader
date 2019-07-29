@@ -69,4 +69,9 @@ bool fileWrite(const void *buffer, const char *path, u32 size)
         default:
             return false;
     }
+    
+    bool fileDelete(const char* path)
+    {
+        return (f_unlink(path) == FR_OK);
+    }
 }
