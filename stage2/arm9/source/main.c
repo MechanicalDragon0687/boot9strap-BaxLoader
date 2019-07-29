@@ -22,9 +22,32 @@ static void invokeArm11Function(Arm11Operation op)
     while(*operation != ARM11_READY); 
 }
 
-static void loadFirm(bool isNand, const char* )
+static void loadFirm(bool isNand, bool bootonce)
 {
-    const char *firmName;
+    static const char* bootonceFirm = "bootonce.firm";
+    static const char* firmNames[] = {"bax.firm", "boot.firm"};
+    static const char* firmName;
+    const int firmcount=2;
+    bool found=false;
+
+    if (bootonce) 
+    {
+        firmName=bootonceFirm;
+    }
+    else
+    {
+        for (uint8_t fcount=0;fcount<firmcount;fcount++)
+        {
+            if (fileExists(firmNames[fcount]))
+            {
+                firmName = firmNames[fcount];
+                found = true;
+                break;
+            }
+        }
+        if (found == false) return;
+    }
+
     Firm *firmHeader = (Firm *)0x080A0000;
     if(fileRead(firmHeader, firmName, 0x200, 0) != 0x200) return;
 
@@ -56,6 +79,7 @@ static void loadFirm(bool isNand, const char* )
     if(!calculatedFirmSize) mcuPowerOff();
 
     if(fileRead(firm, firmName, 0, maxFirmSize) < calculatedFirmSize || !checkSectionHashes(firm)) mcuPowerOff();
+    if(bootonce) fileDelete(firmName);
 
     if(isScreenInit)
     {
@@ -87,28 +111,9 @@ void main(void)
             while(HID_PAD & NTRBOOT_BUTTONS);
             wait(2000ULL);
         }
-        static const char* bootonce = "bootonce.firm";
-        if (fileExists(bootonce)) 
-        {
-            loadFirm(false, bootonce);
-            fileDelete(bootonce);
-        }
-        bool found=false;
-        static const char* firmNames[] = {"bax.firm", "boot.firm"};
-        const int firmcount=2;
-        for (uint8_t fcount=0;fcount<firmcount;fcount++)
-        {
-            if (fileExists(firmNames[fcount]))
-            {
-                firmName = firmNames[fcount];
-                found = true;
-                break;
-            }
-        }
         
-        if (found == false) return;
-        
-        loadFirm(false, firmName);
+        loadFirm(false, true);
+        loadFirm(false, false);
         unmountSd();
     }
 
@@ -120,7 +125,7 @@ void main(void)
             while(HID_PAD & NTRBOOT_BUTTONS);
             wait(2000ULL);
         }
-        loadFirm(true);
+        loadFirm(true, false);
     }
 
     mcuPowerOff();
