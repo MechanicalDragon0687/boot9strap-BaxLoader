@@ -22,9 +22,9 @@ static void invokeArm11Function(Arm11Operation op)
     while(*operation != ARM11_READY); 
 }
 
-static void loadFirm(bool isNand)
+static void loadFirm(bool isNand, const char* )
 {
-    static const char *firmName = "boot.firm";
+    const char *firmName;
     Firm *firmHeader = (Firm *)0x080A0000;
     if(fileRead(firmHeader, firmName, 0x200, 0) != 0x200) return;
 
@@ -87,8 +87,28 @@ void main(void)
             while(HID_PAD & NTRBOOT_BUTTONS);
             wait(2000ULL);
         }
-
-        loadFirm(false);
+        static const char* bootonce = "bootonce.firm";
+        if (fileExists(bootonce)) 
+        {
+            loadFirm(false, bootonce);
+            fileDelete(bootonce);
+        }
+        bool found=false;
+        static const char* firmNames[] = {"bax.firm", "boot.firm"};
+        const int firmcount=2;
+        for (uint8_t fcount=0;fcount<firmcount;fcount++)
+        {
+            if (fileExists(firmNames[fcount]))
+            {
+                firmName = firmNames[fcount];
+                found = true;
+                break;
+            }
+        }
+        
+        if (found == false) return;
+        
+        loadFirm(false, firmName);
         unmountSd();
     }
 
