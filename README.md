@@ -8,7 +8,7 @@ For more details, refer to the presentation [here](https://sciresm.github.io/33-
 
 Install via [SafeB9SInstaller](https://github.com/d0k3/SafeB9SInstaller).
 
-Launches "boot.firm" off of the SD card or CTRNAND. Hold Start + Select + X on boot to dump the bootroms/your OTP.
+Launches "bootonce.firm" from the SD and deletes it (if it exists). once bootonce.firm exits, boots "bax.firm" if it exists or "boot.firm" off of the SD card or CTRNAND. Hold Start + Select + X on boot to dump the bootroms/your OTP.
 
 **Credits:**
 
